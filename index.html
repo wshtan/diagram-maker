@@ -130,23 +130,23 @@ const app = Vue.createApp({
 					ctx.fillStrokeShape(shape);
 					// draw arrow pointer here:
 					var PI2 = Math.PI * 2;
-  		  	var dx = bezier.end.x() - bezier.control2.x();
-  		  	var dy = bezier.end.y() - bezier.control2.y();
-  		  	//var dy = points[3] - points[1];
-  		  	var radians = (Math.atan2(dy, dx) + PI2) % PI2;
-  		  	var length = shape.getAttr('pointerLength');
-  		  	var width = shape.getAttr('pointerWidth');
-  		  	// draw pointer
-  		  	ctx.save();
-  		  	ctx.beginPath();
-  		  	ctx.translate(bezier.end.x(), bezier.end.y());
-  		  	ctx.rotate(radians);
-  		  	ctx.moveTo(0, 0);
-  		  	ctx.lineTo(-length, width / 2);
-  		  	ctx.moveTo(0, 0);
-  		  	ctx.lineTo(-length, -width / 2);
-  		  	ctx.restore();
-  		  	ctx.fillStrokeShape(shape);
+					var dx = bezier.end.x() - bezier.control2.x();
+					var dy = bezier.end.y() - bezier.control2.y();
+					//var dy = points[3] - points[1];
+					var radians = (Math.atan2(dy, dx) + PI2) % PI2;
+					var length = shape.getAttr('pointerLength');
+					var width = shape.getAttr('pointerWidth');
+					// draw pointer
+					ctx.save();
+					ctx.beginPath();
+					ctx.translate(bezier.end.x(), bezier.end.y());
+					ctx.rotate(radians);
+					ctx.moveTo(0, 0);
+					ctx.lineTo(-length, width / 2);
+					ctx.moveTo(0, 0);
+					ctx.lineTo(-length, -width / 2);
+					ctx.restore();
+					ctx.fillStrokeShape(shape);
 				},
 			});
 			layer.add(bezierLine);
