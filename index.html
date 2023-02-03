@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://unpkg.com/konva@8.4.2/konva.min.js"></script>
+<meta charset="utf-8" />
+<title>Konva Line Polygon Demo</title>
+<style>
+
+body {
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	background-color: white;
+}
+
+#container {
+	margin: 4px;
+	border: 1px solid black;
+}
+
+</style>
+</head>
+<body>
+	<button id="elAddVertexButton">Add Vertex</button>
+	<button id="elAddEdgeButton">Add Edge</button>
+	<button id="elAddTextButton">Add Text</button>
+	<button id="elCopyObjectButton" title="Create duplicate of selected object">Copy Object</button>
+	<button id="elToggleControlObjectsButton" title="Toggle Control Objects">Toggle Control Objects</button>
+	<div id="container"></div>
+<script>
+
+//var poly = new Konva.Line({
+//	points: [23, 20, 23, 160, 70, 93, 150, 109, 290, 139, 270, 93],
+//	fill: '#00D2FF',
+//	stroke: 'black',
+//	strokeWidth: 5,
+//	closed: true,
+//});
+
+function createState() {
+	var width = window.innerWidth;
+	var height = window.innerHeight;
+	var stage = new Konva.Stage({
+		container: 'container',
+		width: width,
+		height: height,
+	});
+	var layer = new Konva.Layer();
+	var state = {
+		queues: {
+			// TODO: sequential communicating processes...
+			messages: [],
+			events: [],
+			requests: [],
+		},
+		el: {
+			addVertexButton: document.getElementById('elAddVertexButton'),
+			addEdgeButton: document.getElementById('elAddEdgeButton'),
+			addTextButton: document.getElementById('elAddTextButton'),
+			toggleControlObjectsButton: document.getElementById('elToggleControlObjectsButton'),
+		},
+		data: {
+			isControlObjectsVisible: true,
+			konvaStage: stage,
+			konvaLayer: layer,
+		},
+		cache: {
+
+		},
+	};
+	// init:
+	state.data.konvaStage.add(state.data.konvaLayer);
+	// bind event listeners:
+	state.el.addVertexButton.addEventListener('click', function (e) {
+		handleAddVertex(state, e);
+	});
+	state.el.addEdgeButton.addEventListener('click', function (e) {
+		handleAddEdge(state, e);
+	});
+	state.el.addTextButton.addEventListener('click', function (e) {
+		handleAddText(state, e);
+	});
+	state.el.toggleControlObjectsButton.addEventListener('click', function (e) {
+		handleToggleControlObjects(state, e);
+	});
+	return state;
+}
+
+function updateAndRenderState(state) {
+	// read queue, update, render...
+}
+
+function handleAddVertex(state, e) {
+	console.log('handleAddVertex(): ');
+	console.log(e);
+	var vertex = new Konva.Circle({
+		radius: 40,
+		fill: null,
+		stroke: 'black',
+		strokeWidth: 1,
+		draggable: true,
+	});
+	state.data.konvaLayer.add(vertex);
+}
+
+function handleAddEdge(state, e) {
+	//var edge = new Konva.Arrow({
+	//	points: [0, 0, 50, 50],
+	//	stroke: 'black',
+	//	fill: 'rgb(0,0,0)',
+	//	//tension: 1,
+	//	pointerLength : 10,
+	//	pointerWidth : 12,
+	//	draggable: true,
+	//});
+	//state.data.konvaLayer.add(edge);
+	// function to build anchor point
+	var stage = state.data.konvaStage;
+	var layer = state.data.konvaLayer;
+	function buildAnchor(x, y) {
+		var anchor = new Konva.Circle({
+			x: x,
+			y: y,
+			radius: 5,
+			stroke: 'blue',
+			fill: null,
+			name: 'bezierControlObject',
+			strokeWidth: 1,
+			draggable: true,
+		});
+		layer.add(anchor);
+		// add hover styling
+		anchor.on('mouseover', function () {
+			document.body.style.cursor = 'pointer';
+			this.strokeWidth(4);
+		});
+		anchor.on('mouseout', function () {
+			document.body.style.cursor = 'default';
+			this.strokeWidth(2);
+		});
+		anchor.on('dragmove', function () {
+			updateDottedLines();
+		});
+		return anchor;
+	}
+	//var stage = new Konva.Stage({
+	//  container: 'container',
+	//  width: width,
+	//  height: height,
+	//});
+	//var layer = new Konva.Layer();
+	//stage.add(layer);
+	// function to update line points from anchors
+	function updateDottedLines() {
+		//var q = quad;
+		var b = bezier;
+		//var quadLinePath = layer.findOne('#quadLinePath');
+		var bezierLinePath = layer.findOne('#bezierLinePath');
+		//quadLinePath.points([
+		//	q.start.x(),
+		//	q.start.y(),
+		//	q.control.x(),
+		//	q.control.y(),
+		//	q.end.x(),
+		//	q.end.y(),
+		//]);
+		bezierLinePath.points([
+			b.start.x(),
+			b.start.y(),
+			b.control1.x(),
+			b.control1.y(),
+			b.control2.x(),
+			b.control2.y(),
+			b.end.x(),
+			b.end.y(),
+		]);
+	}
+	// we will use custom shape for curve
+	//var quadraticLine = new Konva.Shape({
+	//	stroke: 'red',
+	//	strokeWidth: 4,
+	//	sceneFunc: (ctx, shape) => {
+	//		ctx.beginPath();
+	//		ctx.moveTo(quad.start.x(), quad.start.y());
+	//		ctx.quadraticCurveTo(
+	//			quad.control.x(),
+	//			quad.control.y(),
+	//			quad.end.x(),
+	//			quad.end.y()
+	//		);
+	//		ctx.fillStrokeShape(shape);
+	//	},
+	//});
+	//layer.add(quadraticLine);
+	// we will use custom shape for curve
+	var bezierLine = new Konva.Shape({
+		stroke: 'black',
+		strokeWidth: 1,
+		sceneFunc: (ctx, shape) => {
+			ctx.beginPath();
+			ctx.moveTo(bezier.start.x(), bezier.start.y());
+			ctx.bezierCurveTo(
+				bezier.control1.x(),
+				bezier.control1.y(),
+				bezier.control2.x(),
+				bezier.control2.y(),
+				bezier.end.x(),
+				bezier.end.y()
+			);
+			ctx.fillStrokeShape(shape);
+			// draw arrow pointer here:
+			var PI2 = Math.PI * 2;
+    	var dx = bezier.end.x() - bezier.control2.x();
+    	var dy = bezier.end.y() - bezier.control2.y();
+    	//var dy = points[3] - points[1];
+    	var radians = (Math.atan2(dy, dx) + PI2) % PI2;
+    	//var length = shape.getAttr('pointerLength');
+    	//var width = shape.getAttr('pointerWidth');
+    	var length = 10;
+    	var width = 10;
+    	// draw pointer
+    	ctx.save();
+    	ctx.beginPath();
+    	ctx.translate(bezier.end.x(), bezier.end.y());
+    	ctx.rotate(radians);
+    	ctx.moveTo(0, 0);
+    	ctx.lineTo(-length, width / 2);
+    	ctx.moveTo(0, 0);
+    	ctx.lineTo(-length, -width / 2);
+    	ctx.restore();
+    	ctx.fillStrokeShape(shape);
+		},
+	});
+	layer.add(bezierLine);
+	//var quadLinePath = new Konva.Line({
+	//	dash: [10, 10, 0, 10],
+	//	strokeWidth: 3,
+	//	stroke: 'black',
+	//	lineCap: 'round',
+	//	id: 'quadLinePath',
+	//	opacity: 0.3,
+	//	points: [0, 0],
+	//});
+	//layer.add(quadLinePath);
+	var bezierLinePath = new Konva.Line({
+		dash: [10, 10, 0, 10],
+		strokeWidth: 1,
+		stroke: 'blue',
+		lineCap: 'round',
+		id: 'bezierLinePath',
+		name: 'bezierControlObject',
+		opacity: 0.95,
+		points: [0, 0],
+	});
+	layer.add(bezierLinePath);
+	// special objects to save references to anchors
+	//var quad = {
+	//	start: buildAnchor(60, 30),
+	//	control: buildAnchor(240, 110),
+	//	end: buildAnchor(80, 160),
+	//};
+	var bezier = {
+		start: buildAnchor(280, 20),
+		control1: buildAnchor(530, 40),
+		control2: buildAnchor(480, 150),
+		end: buildAnchor(300, 150),
+	};
+	updateDottedLines();
+}
+
+function handleAddText(state, e) {
+
+}
+
+function handleToggleControlObjects(state, e) {
+	var controlObjects = state.data.konvaStage.find('.bezierControlObject');
+	if (state.data.isControlObjectsVisible) {
+		controlObjects.forEach(function (shape) {
+			shape.hide();
+		});
+	} else {
+		controlObjects.forEach(function (shape) {
+			shape.show();
+		});
+	}
+	state.data.isControlObjectsVisible = !state.data.isControlObjectsVisible;
+}
+
+
+(function () {
+	state = createState();
+	// TODO
+})();
+
+</script>
+</body>
+</html>
