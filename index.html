@@ -196,6 +196,8 @@ function handleAddEdge(state, e) {
 	var bezierLine = new Konva.Shape({
 		stroke: 'black',
 		strokeWidth: 1,
+		pointerLength: 10,
+		pointerWidth: 10,
 		sceneFunc: (ctx, shape) => {
 			ctx.beginPath();
 			ctx.moveTo(bezier.start.x(), bezier.start.y());
@@ -214,10 +216,8 @@ function handleAddEdge(state, e) {
     	var dy = bezier.end.y() - bezier.control2.y();
     	//var dy = points[3] - points[1];
     	var radians = (Math.atan2(dy, dx) + PI2) % PI2;
-    	//var length = shape.getAttr('pointerLength');
-    	//var width = shape.getAttr('pointerWidth');
-    	var length = 10;
-    	var width = 10;
+    	var length = shape.getAttr('pointerLength');
+    	var width = shape.getAttr('pointerWidth');
     	// draw pointer
     	ctx.save();
     	ctx.beginPath();
