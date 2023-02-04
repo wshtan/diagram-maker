@@ -9,3 +9,4 @@ https://wshtan.github.io/diagram-maker/index.html
 
 - Konva [https://konvajs.org/]
 - Vue 3 [https://vuejs.org/]
+- MathJax 3 [https://www.mathjax.org/]

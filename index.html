@@ -3,22 +3,28 @@
 <head>
 <meta charset="utf-8" />
 
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 <script src="https://unpkg.com/konva@8.4.2/konva.min.js"></script>
 <script src="https://unpkg.com/vue@3"></script>
 
 <title>diagram-maker - Draw Markov chain</title>
 <style>
 
+html, body {
+	margin: 0;
+	padding: 0;
+	top: 0;
+	left: 0;
+	position: absolute;
+}
+
 #app {
 	margin: 0;
 	padding: 0;
-	overflow: hidden;
+	/* overflow: hidden; */
 	background-color: white;
-}
-
-#container {
-	margin: 4px;
-	border: 1px solid black;
+	display: flex;
 }
 
 </style>
@@ -26,26 +32,65 @@
 <body>
 
 <div id="app">
-	<button @click="handleAddVertex">Add Vertex</button>
-	<button @click="handleAddEdge">Add Edge</button>
-	<button @click="handleAddText">Add Text</button>
-	<button @click="handleCopyObject" title="Create duplicate of selected object">Copy Object</button>
-	<button @click="handleToggleControlObjects" title="Toggle Control Objects">Toggle Control Objects</button>
-	<div ref="konvaContainerElement"></div>
+	<div :style="sideBarStyle">
+		<div>
+			<button @click="handleAddVertex">Add Vertex</button>
+			<button @click="handleAddEdge">Add Edge</button>
+			<button @click="handleAddText">Add Text</button>
+			<button @click="handleCopyObject" title="Create duplicate of selected object">Copy Object</button>
+			<button @click="handleToggleControlObjects" title="Toggle Control Objects">Toggle Control Objects</button>
+		</div>
+		<input type="text" v-model="inputText">
+		<div>
+			TODO: edit object property....
+		</div>
+	</div>
+	<div :style="mainStageStyle">
+		<div ref="konvaContainerElement"></div>
+	</div>
 </div>
 
 <script>
 
+const MathJaxSvgRenderOptions = {
+	em: 16,
+	ex: 8,
+	containerWidth: 579,
+	display: true,
+	scale: 1,
+	lineWidth: 1000000
+};
+
+const XmlHeader = '<' + '?xml version="1.0" encoding="UTF-8" standalone="no" ?' + '>\n';
+
 const app = Vue.createApp({
 	data() {
 		return ({
+			sideBarWidth: 200,
 			konvaStage: null,
 			konvaLayer: null,
+			inputText: '\\frac{\\pi}{2}', // default
 		});
+	},
+	computed: {
+		mainStageStyle() {
+			return {
+				//flex: ('50%'),
+				width: (window.innerWidth - this.sideBarWidth - 10) + 'px',
+				border: '1px solid black',
+			};
+		},
+		sideBarStyle() {
+			return {
+				//flex: (100 - this.stageWidthPercentage) + '%',
+				width: this.sideBarWidth + 'px',
+				border: '1px solid black',
+			};
+		},
 	},
 	methods: {
 		initKonva() {
-			let konvaContainerWidth = window.innerWidth;
+			let konvaContainerWidth = window.innerWidth - this.sideBarWidth - 10;
 			let konvaContainerHeight = window.innerHeight;
 			let konvaContainerElement = this.$refs.konvaContainerElement;
 			let stage = new Konva.Stage({
@@ -169,7 +214,26 @@ const app = Vue.createApp({
 			};
 			updateDottedLines();
 		},
-		handleAddText() { },     // TODO
+		handleAddText() {
+			let el = MathJax.tex2svg(this.inputText, MathJaxSvgRenderOptions);
+			console.log(el.firstChild);
+			let svg = el.firstChild;
+			svg.removeAttribute('style');
+			svg.removeAttribute('focusable');
+			svg.removeAttribute('role');
+			let svgString = (XmlHeader + svg.outerHTML);
+			let image = new Image();
+			image.src = 'data:image/svg+xml;base64,' + window.btoa(svgString);
+			console.log(image);
+			let konvaImage = new Konva.Image({
+				image: image,
+				x: 200,
+				//width: 150,
+				//height: 150,
+				draggable: true,
+			});
+			this.konvaLayer.add(konvaImage);
+		},
 		handleCopyObject() { },  // TODO
 		handleToggleControlObjects() {
 			var controlObjects = this.konvaStage.find('.bezierControlObject');
