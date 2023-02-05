@@ -39,10 +39,16 @@ html, body {
 			<button @click="handleAddText">Add Text</button>
 			<button @click="handleCopyObject" title="Create duplicate of selected object">Copy Object</button>
 			<button @click="handleToggleControlObjects" title="Toggle Control Objects">Toggle Control Objects</button>
+			<button @click="handleToggleStageBoundingRect" title="Toggle Stage Bounding Rect">Toggle Stage Bounding Rect</button>
+			<button @click="handleExportImage" title="Export Image">Export Image</button>
 		</div>
 		<input type="text" v-model="inputText">
 		<div>
 			TODO: edit object property....
+			x: {{stageBoundingRectX}}[px];
+			y: {{stageBoundingRectY}}[px];
+			w: {{stageBoundingRectW}}[px];
+			h: {{stageBoundingRectH}}[px];
 		</div>
 	</div>
 	<div :style="mainStageStyle">
@@ -70,6 +76,12 @@ const app = Vue.createApp({
 			konvaStage: null,
 			konvaLayer: null,
 			inputText: '\\frac{\\pi}{2}', // default
+			isControlObjectsVisible: true,
+			isStageBoundingRectVisible: true,
+			stageBoundingRectX: 0,
+			stageBoundingRectY: 0,
+			stageBoundingRectW: 0,
+			stageBoundingRectH: 0,
 		});
 	},
 	computed: {
@@ -92,6 +104,10 @@ const app = Vue.createApp({
 		initKonva() {
 			let konvaContainerWidth = window.innerWidth - this.sideBarWidth - 10;
 			let konvaContainerHeight = window.innerHeight;
+			this.stageBoundingRectX = 20;
+			this.stageBoundingRectY = 20;
+			this.stageBoundingRectW = konvaContainerWidth - 40;
+			this.stageBoundingRectH = konvaContainerHeight - 40;
 			let konvaContainerElement = this.$refs.konvaContainerElement;
 			let stage = new Konva.Stage({
 				container: konvaContainerElement,
@@ -102,6 +118,78 @@ const app = Vue.createApp({
 			stage.add(layer);
 			this.konvaStage = stage;
 			this.konvaLayer = layer;
+			let stageBoundingRect = new Konva.Rect({
+				x: this.stageBoundingRectX,
+				y: this.stageBoundingRectY,
+				width:  this.stageBoundingRectW,
+				height: this.stageBoundingRectH,
+				name: 'stageBoundingRect',
+				fill: null,
+				stroke: 'blue',
+				strokeWidth: 1,
+			});
+			this.konvaLayer.add(stageBoundingRect);
+			let stageBoundingRectAnchorXY = new Konva.Circle({
+				x: this.stageBoundingRectX,
+				y: this.stageBoundingRectY,
+				radius: 5,
+				stroke: 'blue',
+				fill: null,
+				name: 'stageBoundingRectAnchor',
+				strokeWidth: 1,
+				draggable: true,
+			});
+			let stageBoundingRectAnchorWH = new Konva.Circle({
+				x: this.stageBoundingRectX + this.stageBoundingRectW,
+				y: this.stageBoundingRectY + this.stageBoundingRectH,
+				radius: 5,
+				stroke: 'blue',
+				fill: null,
+				name: 'stageBoundingRectAnchor',
+				strokeWidth: 1,
+				draggable: true,
+			});
+			this.konvaLayer.add(stageBoundingRectAnchorXY);
+			this.konvaLayer.add(stageBoundingRectAnchorWH);
+			let vueThis = this;
+			stageBoundingRectAnchorXY.on('mouseover', function () {
+					document.body.style.cursor = 'pointer';
+					this.strokeWidth(4);
+			});
+			stageBoundingRectAnchorXY.on('mouseout', function () {
+					document.body.style.cursor = 'default';
+					this.strokeWidth(2);
+			});
+			stageBoundingRectAnchorWH.on('mouseover', function () {
+					document.body.style.cursor = 'pointer';
+					this.strokeWidth(4);
+			});
+			stageBoundingRectAnchorWH.on('mouseout', function () {
+					document.body.style.cursor = 'default';
+					this.strokeWidth(2);
+			});
+			stageBoundingRectAnchorXY.on('dragmove', function () {
+				const x = this.x();
+				const y = this.y();
+				const w = vueThis.stageBoundingRectW + vueThis.stageBoundingRectX - x;
+				const h = vueThis.stageBoundingRectH + vueThis.stageBoundingRectY - y;
+				vueThis.stageBoundingRectX = x;
+				vueThis.stageBoundingRectY = y;
+				vueThis.stageBoundingRectW = w;
+				vueThis.stageBoundingRectH = h;
+				vueThis.konvaStage.findOne('.stageBoundingRect').x(x);
+				vueThis.konvaStage.findOne('.stageBoundingRect').y(y);
+				vueThis.konvaStage.findOne('.stageBoundingRect').width(w);
+				vueThis.konvaStage.findOne('.stageBoundingRect').height(h);
+			});
+			stageBoundingRectAnchorWH.on('dragmove', function () {
+				const w = this.x() - vueThis.stageBoundingRectX;
+				const h = this.y() - vueThis.stageBoundingRectY;
+				vueThis.stageBoundingRectW = w;
+				vueThis.stageBoundingRectH = h;
+				vueThis.konvaStage.findOne('.stageBoundingRect').width(w);
+				vueThis.konvaStage.findOne('.stageBoundingRect').height(h);
+			});
 		},
 		handleAddVertex() {
 			var vertex = new Konva.Circle({
@@ -228,8 +316,6 @@ const app = Vue.createApp({
 			let konvaImage = new Konva.Image({
 				image: image,
 				x: 200,
-				//width: 150,
-				//height: 150,
 				draggable: true,
 			});
 			this.konvaLayer.add(konvaImage);
@@ -247,7 +333,50 @@ const app = Vue.createApp({
 				});
 			}
 			this.isControlObjectsVisible = !this.isControlObjectsVisible;
-		}
+		},
+		handleToggleStageBoundingRect() {
+			var stageBoundingRect = this.konvaStage.findOne('.stageBoundingRect');
+			var stageBoundingRectAnchors = this.konvaStage.find('.stageBoundingRectAnchor');
+			if (this.isStageBoundingRectVisible) {
+				stageBoundingRect.hide();
+				stageBoundingRectAnchors.forEach(function (shape) { shape.hide(); });
+			} else {
+				stageBoundingRect.show();
+				stageBoundingRectAnchors.forEach(function (shape) { shape.show(); });
+			}
+			this.isStageBoundingRectVisible = !this.isStageBoundingRectVisible;
+		},
+		downloadFinalImage(uri, name) {
+			let link = document.createElement('a');
+			link.download = name;
+			link.href = uri;
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+			delete link;
+		},
+		handleExportImage() {
+			console.log('handleExportImage(): start');
+			// hide:
+			var stageBoundingRect = this.konvaStage.findOne('.stageBoundingRect');
+			var stageBoundingRectAnchors = this.konvaStage.find('.stageBoundingRectAnchor');
+			var controlObjects = this.konvaStage.find('.bezierControlObject');
+			stageBoundingRect.hide();
+			stageBoundingRectAnchors.forEach(function (shape) { shape.hide(); });
+			controlObjects.forEach(function (shape) {
+				shape.hide();
+			});
+			// generate data url:
+			let url = this.konvaStage.toDataURL({
+				pixelRatio: 4,
+				x: this.stageBoundingRectX,
+				y: this.stageBoundingRectY,
+				width : this.stageBoundingRectW,
+				height: this.stageBoundingRectH,
+
+			});
+			this.downloadFinalImage(url, 'image.png');
+		},
 	},
 	mounted() {
 		this.initKonva();
