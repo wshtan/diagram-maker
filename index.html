@@ -42,13 +42,21 @@ html, body {
 			<button @click="handleToggleStageBoundingRect" title="Toggle Stage Bounding Rect">Toggle Stage Bounding Rect</button>
 			<button @click="handleExportImage" title="Export Image">Export Image</button>
 		</div>
-		<input type="text" v-model="inputText">
+		<div>
+			<input type="text" v-model="inputText">
+		</div>
 		<div>
 			TODO: edit object property....
 			x: {{stageBoundingRectX}}[px];
 			y: {{stageBoundingRectY}}[px];
 			w: {{stageBoundingRectW}}[px];
 			h: {{stageBoundingRectH}}[px];
+		</div>
+		<div>
+			GitHub Repo:
+			<a href="https://github.com/wshtan/diagram-maker">
+				https://github.com/wshtan/diagram-maker
+			</a>
 		</div>
 	</div>
 	<div :style="mainStageStyle">

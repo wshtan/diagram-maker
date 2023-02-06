@@ -1,5 +1,7 @@
 # Welcome to `diagram-maker`
 
+![](./demo_result.png)
+
 This is a web application that can help people draw Markov chain.
 
 https://wshtan.github.io/diagram-maker/index.html
