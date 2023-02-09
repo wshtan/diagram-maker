@@ -83,6 +83,8 @@ const app = Vue.createApp({
 			sideBarWidth: 200,
 			konvaStage: null,
 			konvaLayer: null,
+			konvaBackgroundLayer: null,
+			backgroundColor: 'rgba(255, 255, 255, 1)',  // white, opaque
 			inputText: '\\frac{\\pi}{2}', // default
 			isControlObjectsVisible: true,
 			isStageBoundingRectVisible: true,
@@ -122,10 +124,23 @@ const app = Vue.createApp({
 				width: konvaContainerWidth,
 				height: konvaContainerHeight,
 			});
+			let backgroundLayer = new Konva.Layer();
+			stage.add(backgroundLayer);
+			let backgroundRect = new Konva.Rect({
+				x: 0,
+				y: 0,
+				width:  konvaContainerWidth,
+				height: konvaContainerHeight,
+				name: 'backgroundRect',
+				fill: this.backgroundColor,
+				stroke: null,
+			});
+			backgroundLayer.add(backgroundRect);
 			let layer = new Konva.Layer();
 			stage.add(layer);
 			this.konvaStage = stage;
 			this.konvaLayer = layer;
+			this.konvaBackgroundLayer = backgroundLayer;
 			let stageBoundingRect = new Konva.Rect({
 				x: this.stageBoundingRectX,
 				y: this.stageBoundingRectY,
