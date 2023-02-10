@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
 <head>
 <meta charset="utf-8" />
@@ -35,7 +35,8 @@ html, body {
 	<div :style="sideBarStyle">
 		<div>
 			<button @click="handleAddVertex">Add Vertex</button>
-			<button @click="handleAddEdge">Add Edge</button>
+			<button @click="handleAddUndirectedEdge">Add Undirected Edge</button>
+			<button @click="handleAddDirectedEdge">Add Directed Edge</button>
 			<button @click="handleAddText">Add Text</button>
 			<button @click="handleCopyObject" title="Create duplicate of selected object">Copy Object</button>
 			<button @click="handleToggleControlObjects" title="Toggle Control Objects">Toggle Control Objects</button>
@@ -224,7 +225,13 @@ const app = Vue.createApp({
 			});
 			this.konvaLayer.add(vertex);
 		},
-		handleAddEdge() {
+		handleAddDirectedEdge() {
+			this.handleAddEdge(true);
+		},
+		handleAddUndirectedEdge() {
+			this.handleAddEdge(false);
+		},
+		handleAddEdge(isDirected) {
 			var stage = this.konvaStage;
 			var layer = this.konvaLayer;
 			function buildAnchor(x, y) {
@@ -270,8 +277,9 @@ const app = Vue.createApp({
 			var bezierLine = new Konva.Shape({
 				stroke: 'black',
 				strokeWidth: 1,
-				pointerLength: 10,
-				pointerWidth: 10,
+				pointerLength: (isDirected ? 10 : 0),
+				pointerWidth: (isDirected ? 10 : 0),
+				isDirected: isDirected,
 				sceneFunc: (ctx, shape) => {
 					ctx.beginPath();
 					ctx.moveTo(bezier.start.x(), bezier.start.y());
