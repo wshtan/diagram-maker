@@ -47,11 +47,18 @@ html, body {
 			<input type="text" v-model="inputText">
 		</div>
 		<div>
+			<input type="text" v-model.number="vertexRadius" placeholder="Vertex Radius">
+			<button @click="handleChangeVertexRadius">Change Vertex Radius</button>
+		</div>
+		<div>
 			TODO: edit object property....
 			x: {{stageBoundingRectX}}[px];
 			y: {{stageBoundingRectY}}[px];
 			w: {{stageBoundingRectW}}[px];
 			h: {{stageBoundingRectH}}[px];
+		</div>
+		<div>
+			vertexRadius: {{vertexRadius}}
 		</div>
 		<div>
 			GitHub Repo:
@@ -93,6 +100,7 @@ const app = Vue.createApp({
 			stageBoundingRectY: 0,
 			stageBoundingRectW: 0,
 			stageBoundingRectH: 0,
+			vertexRadius: 40,
 		});
 	},
 	computed: {
@@ -217,13 +225,20 @@ const app = Vue.createApp({
 		},
 		handleAddVertex() {
 			var vertex = new Konva.Circle({
-				radius: 40,
+				radius: this.vertexRadius,
 				fill: null,
 				stroke: 'black',
 				strokeWidth: 1,
 				draggable: true,
+				name: 'vertex',
 			});
 			this.konvaLayer.add(vertex);
+		},
+		handleChangeVertexRadius() {
+			var vertexes = this.konvaStage.find('.vertex');
+			vertexes.forEach(shape => {
+				shape.radius(this.vertexRadius);
+			});
 		},
 		handleAddDirectedEdge() {
 			this.handleAddEdge(true);
